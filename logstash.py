@@ -49,6 +49,11 @@ DOCUMENTATION = '''
         env:
           - name: LOGSTASH_TYPE
         default: ansible
+      user:
+        description: Gets current logged in user and adds to output
+        env:
+          - name: USER
+
 '''
 
 EXAMPLES = '''
@@ -129,7 +134,11 @@ class CallbackModule(CallbackBase):
                 version=1,
                 message_type=self.ls_type
             )
-
+            try:
+              self.user = self.get_option('user')
+            except KeyError:
+              self.user = "ansible"
+            
             self.logger.addHandler(self.handler)
             self.hostname = socket.gethostname()
             self.session = str(uuid.uuid4())
@@ -137,7 +146,8 @@ class CallbackModule(CallbackBase):
 
             self.base_data = {
                 'session': self.session,
-                'host': self.hostname
+                'host': self.hostname,
+                'user': self.user
             }
 
             if self.ls_pre_command is not None:
